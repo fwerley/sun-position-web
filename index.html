@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sun Position</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="./sun-position-ico.png" type="image/png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="controls">
+        <div class="title" id="controls">
+            Controls
+        </div>
+        <form action="" id="form">
+            <div>
+                <div>
+                    <label for="lat">Latitude</label>
+                    <input type="number" name="latitude" id="lat" value="">
+                </div>
+                <div>
+                    <label for="lng">Longitude</label>
+                    <input type="number" name="longitude" id="lng" value="">
+                </div>
+                <div>
+                    <label for="date">Datetime</label>
+                    <input type="datetime-local" name="date" id="date">
+                </div>
+            </div>
+            <div>
+                <div>
+                    <label for="play"></label>
+                    <input type="button" name="play" id="play" value="Play">
+                </div>
+                <div>
+                    <label for="pause"></label>
+                    <input type="button" name="pause" id="pause" value="Pause">
+                </div>
+                <div>
+                    <label for="now"></label>
+                    <input type="button" name="now" id="now" value="Now">
+                </div>
+            </div>
+        </form>
+        <!-- <div class="title" id="info">
+            Info
+        </div> -->
+        <div class="angles">
+            <div class="data"></div>
+            <div class="data"></div>
+            <div class="data"></div>
+            <div class="data"></div>
+            <div class="data"></div>
+            <div class="data"></div>
+            <div class="data"></div>
+            <div class="data"></div>
+            <div class="data"></div>
+        </div>
+    </div>
+    <script type="module" src="./src/index.js"></script>
+</body>
+
+</html>

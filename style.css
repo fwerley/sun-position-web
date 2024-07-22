@@ -1,0 +1,108 @@
+.controls {
+    background-color: rgba(255, 255, 255, .2);
+    position: absolute;
+    border-radius: .5rem;
+    margin: .5rem;
+    padding: .5rem;
+}
+
+.title::before {
+    content: "\279C";
+    display: inline-block;
+    transform: rotate(0deg);
+}
+
+.title {
+    cursor: pointer;
+    font-weight: bold;
+    border-bottom: 1px solid rgb(204, 204, 204);
+    padding: 4px;
+}
+
+.title:hover {
+    background-color: rgba(150, 150, 150, 0.2);
+    transition: .5s;
+}
+
+form {
+    display: none;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: space-around;
+    align-items: center;
+}
+
+form.active {
+    display: flex;
+}
+
+form div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    flex-direction: column;
+}
+
+label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+input {
+    background-color: transparent;
+    padding: 5px;
+    border: none;
+    border-bottom: 1px solid gray;
+}
+
+input[type="button"] {
+    background: lightblue;
+    padding: 10px;
+    border: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+.data:nth-child(6)::after {
+    content: '------------';
+    color: #ff00ff;
+}
+
+.data:nth-child(7)::after {
+    content: '--------------';
+    color: #ffff00;
+}
+
+.data:nth-child(8)::after {
+    content: '-------------------';
+    color: #0000ff;
+}
+
+.data:nth-child(9)::after {
+    content: '---------------------';
+    color: #00ff00;
+}
+
+/* canvas {
+    cursor: grab;
+    display: block;
+}
+
+canvas:active {
+    cursor: grabbing;
+} */
+
+/* .hovered {
+    cursor: help;
+} */
+
+.label {
+    color: #fff;
+    font-family: sans-serif;
+    padding: 2px;
+    background: rgba(0, 0, 0, 0.6);
+}
