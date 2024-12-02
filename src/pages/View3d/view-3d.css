@@ -1,0 +1,181 @@
+.controls-container-right {
+    position: absolute;
+    right: 0;    
+    margin: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.controls-container-left {
+    position: absolute;
+    left: 0;    
+    margin: 2rem;
+    margin-left: 10rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* <select> styles */
+select {
+    /* Reset */
+    appearance: none;
+    border: 0;
+    outline: 0;
+    font: inherit;
+    /* Personalize */
+    width: 15rem;
+    overflow: hidden;
+    font-size: 1.6rem;
+    padding: 1rem 4rem 1rem 1rem;
+    background: var(--arrow-icon) no-repeat right 0.8em center / 1.4em,
+      linear-gradient(to left, var(--arrow-bg) 3em, var(--select-bg) 3em);
+    color: var(--primary-color);
+    border-radius: 0.25em;
+    box-shadow: 0 0 .2em 0 rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    font-weight: bold;
+    /* Remove IE arrow */
+    &::-ms-expand {
+      display: none;
+    }
+    /* Remove focus outline */
+    &:focus {
+      outline: none;
+    }
+    /* <option> colors */
+    option {
+      color: inherit;
+      background-color: var(--option-bg);
+    }
+  }
+
+.title::before {
+    content: "\279C";
+    display: inline-block;
+    padding: .2rem;
+    transform: rotate(0deg);
+}
+
+.title {
+    cursor: pointer;
+    font-weight: bold;
+    border-bottom: 1px solid rgb(204, 204, 204);
+    padding: 4px;
+}
+
+.info-project {
+    cursor: pointer;
+    font-size: 1.6rem;
+    padding: 4px;
+}
+
+.info-project:hover {
+    background-color: var(--primary-color);
+    color: var(--primary-color-light);
+    transition: .2s;
+}
+
+.title:hover {
+    background-color: rgba(150, 150, 150, 0.2);
+    transition: .5s;
+}
+
+.controls {
+    background-color: rgba(255, 255, 255, .2);
+    border-radius: .5rem;
+    padding: .5rem;
+}
+
+.controls form {
+    display: none;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: space-around;
+    align-items: center;
+}
+
+form.active {
+    display: flex;
+}
+
+.title.rotate::before {
+    transform: rotate(90deg);
+}
+
+form div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    flex-direction: column;
+}
+
+.angles .data {
+    font-size: 1.2rem;
+}
+
+label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+input {
+    background-color: transparent;
+    padding: 5px;
+    border: none;
+    border-bottom: 1px solid gray;
+}
+
+input[type="submit"], input[type="button"] {
+    background: var(--primary-color);
+    padding: 10px;
+    border: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+.data:nth-child(6)::after {
+    content: '------------';
+    color: #ff00ff;
+}
+
+.data:nth-child(7)::after {
+    content: '--------------';
+    color: #ffff00;
+}
+
+.data:nth-child(8)::after {
+    content: '-----------------';
+    color: #0000ff;
+}
+
+.data:nth-child(9)::after {
+    content: '-----------------';
+    color: #00ff00;
+}
+
+canvas {
+    cursor: grab;
+    display: block;
+}
+
+canvas:active {
+    cursor: grabbing;
+} 
+
+ .hovered {
+    cursor: help;
+}
+
+.label {
+    color: #fff;
+    font-size: 1.5rem;
+    padding: .5rem;
+    border-radius: .5rem;
+    background: rgba(0, 0, 0, 0.6);
+}

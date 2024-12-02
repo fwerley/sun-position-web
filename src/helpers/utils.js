@@ -1,3 +1,5 @@
+import subjects from "./subject";
+
 // Polar to Cartesian [r, theta] => [x, y]
 const p2c = pt => [pt[0] * Math.cos(pt[1]), pt[0] * Math.sin(pt[1])];
 
@@ -10,6 +12,15 @@ const s2c = (r = 4000, theta, fi) => {
     const y = r * Math.sin(theta) * Math.cos(fi);
     const z = r * Math.sin(fi);
     return [x, y, z];
+}
+
+
+const dateWithoutTimezone = (date) => {
+    const tzoffset = date.getTimezoneOffset() * 60000; //offset in milliseconds
+    const withoutTimezone = new Date(date.valueOf() - tzoffset)
+        .toISOString()
+        .slice(0, -1);
+    return withoutTimezone;
 }
 
 // Dregrees to Radians
@@ -56,12 +67,33 @@ const hd2hms = (hd) => {
     return [hend, mend, send];
 }
 
+const capitalize = (string) => {
+    return string.charAt(0).toUpperCase()
+        + string.slice(1);
+}
+
+const urlApiRequest = (sufix) => {
+    return process.env.NODE_ENV === "development" ?
+        `http://127.0.0.1:5001/sun-position-app/us-central1/app/v1/${sufix}` :
+        `https://us-central1-sun-position-app.cloudfunctions.net/app/v1${sufix}`;
+}
+
+const redirectPage = (url) => {
+    let notParams = url.split("?")[0];
+    subjects.handlePageChange(notParams.substring(1));
+    window.history.pushState(notParams, capitalize(notParams), url);
+}
+
 export {
     p2c,
     c2p,
     s2c,
     hd2hms,
+    capitalize,
+    redirectPage,
+    urlApiRequest,
     degreesToRadians,
     radiansToDegrees,
+    dateWithoutTimezone,
     correctionArrayHour
 }

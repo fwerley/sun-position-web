@@ -1,0 +1,87 @@
+/* Google Font Import - Poppins */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+:root {
+    /* ===== Colors ===== */
+    --body-color: #e4e9f7;
+    --sidebar-color: #fff;
+    --primary-color: #695cfe;
+    --primary-color-light: #f6f5ff;
+    --toggle-color: #ddd;
+    --text-color: #707070;
+    --text-color-light: #fdfdfdfd;
+
+    /* ====== Transition ====== */
+    --tran-02: all 0.2s ease;
+    --tran-03: all 0.3s ease;
+    --tran-04: all 0.4s ease;
+    --tran-05: all 0.5s ease;
+
+    --arrow-bg: rgba(255, 255, 255, 0.3);
+    --arrow-icon: url(https://upload.wikimedia.org/wikipedia/commons/9/9d/Caret_down_font_awesome_whitevariation.svg);
+    --option-bg: white;
+    --select-bg: rgba(255, 255, 255, 0.2);
+}
+
+body {
+    transition: var(--tran-05);
+}
+
+::selection {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+body.dark {
+    --body-color: #18191a;
+    --sidebar-color: #242526;
+    --primary-color: #3a3b3c;
+    --primary-color-light: #3a3b3c;
+    --secondary-color: #e7e7e7;
+    --toggle-color: #fff;
+    --text-color: #ccc;
+    --text-color-light: #ccc;
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+h2 {
+    font-size: 2.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+h3 {
+    font-size: 2.0rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+button {
+    color: var(--text-color-light);
+    padding: .5rem 1rem;
+    background-color: var(--primary-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    border: 0;
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition: 0.15s ease;
+}
+
+button:hover {
+    opacity: .8;
+}
