@@ -7,7 +7,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(#000, 0.25);
+    background-color: rgba(0, 0, 0, 0.25);
 }
 
 .modal-container {
@@ -15,12 +15,12 @@
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
-    background-color: #fff;
+    background-color: var(--sidebar-color);
     border-radius: 12px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 15px 30px 0 rgba(#000, 0.25);
+    box-shadow: 0 15px 30px 0 rgba(0, 0, 0, 0.25);
 
     @media (max-width: 600px) {
         width: 90%;
@@ -29,7 +29,7 @@
 
 .modal-container-header {
     padding: 12px 24px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--primary-color-light);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -56,17 +56,20 @@
 
 .modal-container-body .modal-line {
     display: flex;
+    flex-direction: row;
     gap: 1rem;
     font-size: 2rem;
     color: var(--text-color);
 }
 
-.modal-container-body input[type="number"]:valid {
-  background-color: palegreen;
+.modal-container-body input[type="text"]:valid:required {
+    background-color: palegreen;
+    color: var(--primary-color);
 }
 
-.modal-container-body input:invalid {
-  background-color: lightpink;
+.modal-container-body input[type="text"]:invalid:required {
+    background-color: lightpink;
+    color: var(--primary-color);
 }
 
 .modal-container-footer {
@@ -74,7 +77,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--primary-color-light);
     gap: 12px;
     position: relative;
 
@@ -139,5 +142,29 @@
     &:hover,
     &:focus {
         background-color: #dfdad7;
+    }
+}
+
+.loader {
+    /* top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0; */
+    display: flex;
+    /* position: absolute; */
+    align-items: center;
+    justify-content: center;
+    transition: var(--tran-03);
+    /* background-color: rgba(140, 140, 140, .5); */
+
+    .spinner {
+        font-size: 4rem;
+        color: var(--primary-color);
+
+        i {
+            -webkit-animation: spin 3s linear infinite;
+            -moz-animation: spin 3s linear infinite;
+            animation: spin 3s linear infinite;
+        }
     }
 }

@@ -11,6 +11,7 @@
     "gridjs": "^6.2.0",
     "hyperscript": "^2.0.2",
     "hyperscript-helpers": "^3.0.3",
+    "marked": "^15.0.4",
     "redux-watch": "^1.2.0",
     "sun-position": "^0.1.0",
     "three": "^0.158.0",

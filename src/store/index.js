@@ -9,12 +9,23 @@ const selectProject = localStorage.getItem("selectProject");
 const state = proxy({
     user: {
         userInfo: user && user !== "undefined" ? JSON.parse(user) : {},
-        projects: projects && user !== "undefined" ? JSON.parse(projects) : [],
+        projects: {
+            loading: false,
+            error: "",
+            list: projects && user !== "undefined" ? JSON.parse(projects) : []
+        },
         loading: false,
         error: ""
     },
     selectedProject: selectProject && selectProject !== "undefined" ? 
-    JSON.parse(selectProject) : {},
+    {
+        id: JSON.parse(selectProject).id,
+        loading: false,
+        error: ""
+    } : {
+        loading: false,
+        error: ""
+    },
     config: config && config !== "undefined" ? JSON.parse(config) : {}
 });
 

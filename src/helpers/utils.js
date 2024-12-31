@@ -75,7 +75,7 @@ const capitalize = (string) => {
 const urlApiRequest = (sufix) => {
     return process.env.NODE_ENV === "development" ?
         `http://127.0.0.1:5001/sun-position-app/us-central1/app/v1/${sufix}` :
-        `https://us-central1-sun-position-app.cloudfunctions.net/app/v1${sufix}`;
+        `https://us-central1-sun-position-app.cloudfunctions.net/app/v1/${sufix}`;
 }
 
 const redirectPage = (url) => {

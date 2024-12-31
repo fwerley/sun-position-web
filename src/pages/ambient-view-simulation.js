@@ -19,14 +19,34 @@ const rotationMatrix = new THREE.Matrix4();
 const targetQuaternion = new THREE.Quaternion();
 const clock = new THREE.Clock();
 const speed = 2;
+// GUI
+let effectController = {
+    turbidity: 10,
+    rayleigh: 3,
+    mieCoefficient: 0.005,
+    mieDirectionalG: 0.7,
+    elevation: 2,
+    azimuth: 180,
+    // exposure: renderer.toneMappingExposure
+    exposure: null
+};
 let camera, scene, renderer, raycaster, mouse;
 let sky, sun, sphere, uniforms, coords = { latitude: null, longitude: null };
 let path = [], inputLat, inputLng, offsetWidth, offsetHeight, offsetWidthSideBar, solarPanel;
 
 const sunPosition = new SunPosition(coords.latitude, coords.longitude, new Date());
-const dataReferenceDb = ref(db, `data/users/${state.user.userInfo.uid}/projects/${state.user.projects[0]?.tag}`);
+const dataReferenceDb = ref(db, `data/users/${state.user.userInfo.uid}/projects/${state.user.projects.list[0]?.tag}`);
 
-export function ambientViewSimulation(parentCanvas) {
+function skyLight(elevation) {
+    return {
+        turbidity: -0.0006 * Math.pow(elevation, 2) + 0.1565 * elevation + 2.4709,
+        rayleigh: 0.0003 * Math.pow(elevation, 2) - 0.0383 * elevation + 1.3206,
+        mieCoefficient: 6 * Math.pow(10, -6) * Math.pow(elevation, 2) - 0.0015 * elevation + 0.087,
+        mieDirectionalG: 3 * Math.pow(10, -6) * Math.pow(elevation, 2) - 0.0005 * elevation + 0.998,
+    }
+}
+
+export const ambientViewSimulation = (parentCanvas) => {
 
     new ResizeObserver(onWindowResize).observe(parentCanvas);
     init();
@@ -111,17 +131,7 @@ export function ambientViewSimulation(parentCanvas) {
 
         sun = new THREE.Vector3();
 
-        // GUI
-
-        const effectController = {
-            turbidity: 10,
-            rayleigh: 3,
-            mieCoefficient: 0.005,
-            mieDirectionalG: 0.7,
-            elevation: 2,
-            azimuth: 180,
-            exposure: renderer.toneMappingExposure
-        };
+        effectController.exposure = renderer.toneMappingExposure;
 
         function guiChanged() {
             uniforms = sky.material.uniforms;
@@ -298,16 +308,27 @@ export function ambientViewSimulation(parentCanvas) {
         inputLng = parentCanvas.querySelector("#lng");
         const date = parentCanvas.querySelector("#date");
         const anglesInfo = parentCanvas.getElementsByClassName("data");
+        // Controle de simulação, usado no controle de play
+        let control = 0;
         let waitInput = null;
+        inputLat.addEventListener("input", function () {
+            control = 0;
+        });
+        inputLng.addEventListener("input", function () {
+            control = 0;
+        });
         date.addEventListener("input", async function (event) {
             clearTimeout(waitInput);
-            scene.children.forEach(element => {
-                if (element.name !== '') {
-                    scene.remove(scene.getObjectByName(element.name))
-                }
-            });
+            for (let i = 0; i <= 1; i++) {
+                scene.children.forEach(element => {
+                    if (element.name !== '') {
+                        scene.remove(scene.getObjectByName(element.name))
+                    }
+                });
+            }
             waitInput = setTimeout(async () => {
                 if (inputLat.value && inputLng.value && event.target.value) {
+                    control = 0;
                     coords.latitude = parseFloat(inputLat.value);
                     coords.longitude = parseFloat(inputLng.value);
                     sunPosition.setLatitude(coords.latitude);
@@ -316,7 +337,7 @@ export function ambientViewSimulation(parentCanvas) {
                     let duration = sunPosition.getDurationDay();
 
                     sphere.position.set(solarVector.coords[0], solarVector.coords[2], solarVector.coords[1]);
-                    rotateObject(solarPanel, solarVector.coords[0] * 500, solarVector.coords[2] * 500, solarVector.coords[1] * 500);
+                    // rotateObject(solarPanel, solarVector.coords[0] * 500, solarVector.coords[2] * 500, solarVector.coords[1] * 500);
                     let infoData = [
                         solarVector.elevation,
                         solarVector.azimuth,
@@ -354,8 +375,8 @@ export function ambientViewSimulation(parentCanvas) {
             }, 600);
         });
 
+
         play.addEventListener("click", function () {
-            let control = 0;
             clearInterval(loopMoviment);
             if (lat.value && lng.value && date.value) {
                 loopMoviment = setInterval(() => {
@@ -380,7 +401,7 @@ export function ambientViewSimulation(parentCanvas) {
 
         async function loopSunPath(position) {
             sphere.position.set(position.x, position.y, position.z);
-            rotateObject(solarPanel, position.x * 500, position.y * 500, position.z * 500);
+            // rotateObject(solarPanel, position.x * 500, position.y * 500, position.z * 500);
             let infoData = [
                 position.elevation,
                 position.azimuth,
@@ -417,15 +438,6 @@ export function ambientViewSimulation(parentCanvas) {
         // Deve ser subtraido de 180 para ficar de acordo com as referencias dos eixos do three.js
         let coords = s2c(RADIUS_PATH, degToRad(azimuth - 180), degToRad(elevation));
         return { coords, elevation, azimuth }
-    }
-
-    function skyLight(elevation) {
-        return {
-            turbidity: -0.0006 * Math.pow(elevation, 2) + 0.1565 * elevation + 2.4709,
-            rayleigh: 0.0003 * Math.pow(elevation, 2) - 0.0383 * elevation + 1.3206,
-            mieCoefficient: 6 * Math.pow(10, -6) * Math.pow(elevation, 2) - 0.0015 * elevation + 0.087,
-            mieDirectionalG: 3 * Math.pow(10, -6) * Math.pow(elevation, 2) - 0.0005 * elevation + 0.998,
-        }
     }
 
     async function solarChart() {
@@ -600,9 +612,9 @@ export function ambientViewSimulation(parentCanvas) {
             new THREE.MeshBasicMaterial({ color: 0x555555 }),
         ];
         solarPanel = new THREE.Mesh(cubeGeometry, materialArray);
-
+        solarPanel.name = "Solar Panel";
         solarPanel.translateY(500);
-        scene.add(solarPanel);
+        // scene.add(solarPanel);
     }
 
     function rotateObject(object, pointX = 0, pointY = 0, pointZ = 0) {
@@ -630,4 +642,21 @@ export function ambientViewSimulation(parentCanvas) {
         }
     });
 
+}
+
+export const positionSphereLigth = (elevation, azimuth) => {
+    // Deve ser subtraido de 180 para ficar de acordo com as referencias dos eixos do three.js
+    let coords = s2c(RADIUS_PATH, degToRad(azimuth - 180), degToRad(elevation));
+    sphere.position.set(coords[0], coords[2], coords[1]);
+    let phi = degToRad(90 - elevation) || degToRad(90 - effectController.elevation);
+    let theta = degToRad(-azimuth - 90) || degToRad(effectController.azimuth);
+    let light = skyLight(elevation);
+    uniforms['turbidity'].value = light.turbidity;
+    uniforms['rayleigh'].value = light.rayleigh;
+    uniforms['mieCoefficient'].value = light.mieCoefficient;
+    uniforms['mieDirectionalG'].value = light.mieDirectionalG;
+    sun.setFromSphericalCoords(1, phi, theta);
+    uniforms['sunPosition'].value.copy(sun);
+    sun.setFromSphericalCoords(1, phi, theta);
+    uniforms['sunPosition'].value.copy(sun);
 }

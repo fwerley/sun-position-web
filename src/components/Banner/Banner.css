@@ -3,6 +3,7 @@
     display: flex;
     position: absolute;
     visibility: visible;
+    opacity: 1;
     align-items: center;
     justify-content: center;
     z-index: 9999;
@@ -10,9 +11,10 @@
     left: 0;
     right: 0;
     bottom: 0;
+    transition: .3s all;
 }
 
 .banner.hidden {
     visibility: hidden;
-    transition: .5s;
+    opacity: 0;
 }

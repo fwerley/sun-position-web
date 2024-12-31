@@ -1,0 +1,49 @@
+.config-container {
+    font-size: 1.6rem;
+    color: var(--text-color);
+    margin-top: 1rem;
+    background-color: var(--primary-color-light);
+    padding: 4rem;
+    border-radius: 1rem;
+}
+
+.block-container {
+    margin: 2rem 0;
+}
+
+hr {
+    border: .1rem solid var(--toggle-color);
+    margin: .5rem 0;
+}
+
+.item-container {
+    display: flex;
+    padding: 1rem 1rem;
+    border-bottom: .1rem solid var(--toggle-color);
+
+    .item-key {
+        padding: .5rem;
+        flex: 1
+    }
+
+    .item-value {
+        padding: .5rem;
+        flex: 4;
+        inline-size: 150px;
+        overflow-wrap: break-word;
+    }
+
+    .item-value1 {
+        padding: .5rem;
+        flex: 2;
+        inline-size: 150px;
+        overflow-wrap: break-word;
+    }
+
+    .item-value2 {
+        padding: .5rem;
+        flex: 2;
+        inline-size: 150px;
+        overflow-wrap: break-word;
+    }
+}

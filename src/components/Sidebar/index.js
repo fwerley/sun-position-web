@@ -46,7 +46,7 @@ const Sidebar = nav({ className: "sidebar close" }, [
             ]),
             ul({ className: "menu-links" }, [
                 NavLinkItem({ href: "/", id: "home", icon: "bx-home-alt", name: "Home" }),
-                NavLinkItem({ href: `/3d${state.selectedProject && `?project=`+state.selectedProject.id}`, id: "three-d", icon: "bxs-analyse", name: "3D View" }),
+                NavLinkItem({ href: `/3d${state.selectedProject && `?project=` + state.selectedProject.id}`, id: "three-d", icon: "bxs-analyse", name: "3D View" }),
                 NavLinkItem({ href: "/api", id: "api", icon: "bxl-graphql", name: "API" }),
                 NavLinkItem({ href: "/profile", id: "profile", icon: "bx-user", name: "Profile", customClass: "hide" }),
                 NavLinkItem({ href: "/config", id: "config", icon: "bx-cog", name: "Config", customClass: "hide" })
@@ -115,7 +115,11 @@ btnLogin.lastChild.addEventListener("click", async (e) => {
         }
         state.user.userInfo = {};
         localStorage.setItem('userInfo', JSON.stringify({}));
-        state.user.projects = [];
+        state.user.projects = {
+            loading: false,
+            error: "",
+            list: []
+        };
         state.user.loading = false;
         localStorage.setItem('userProjects', JSON.stringify([]));
         redirectPage("/");
@@ -167,7 +171,7 @@ let selected = '';
 
 subscribe(state.selectedProject, () => {
     selected = JSON.stringify(state.selectedProject) !== '{}' ?
-    `/3d?project=${state.selectedProject.id}` : '';
+        `/3d?project=${state.selectedProject.id}` : '';
     page3dUrl.href = selected;
 });
 

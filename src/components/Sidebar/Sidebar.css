@@ -201,6 +201,7 @@ body.dark form input[type="button"] {
     flex-direction: column;
     justify-content: space-between;
     overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 .menu-bar::-webkit-scrollbar {

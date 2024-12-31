@@ -20,3 +20,14 @@ input.gridjs-input {
     color: var(--text-color);
     border: 1px solid var(--primary-color-light);
 }
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+@media only screen and (max-width: 760px) {
+    .table-profile .gridjs-td:first-child {
+        overflow-wrap: break-word;
+    }
+}

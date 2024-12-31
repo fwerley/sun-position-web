@@ -1,6 +1,38 @@
+.container-full {
+
+    
+    .loader {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        /* display: flex; */
+        position: absolute;
+        /* align-items: center;
+        justify-content: center; */
+        transition: var(--tran-03);
+        /* background-color: rgba(140, 140, 140, .5); */
+
+        &.no-active {
+            display: none;
+        }
+
+        .spinner {
+            font-size: 8rem;
+            color: var(--primary-color);
+
+            i {
+                -webkit-animation: spin 3s linear infinite;
+                -moz-animation: spin 3s linear infinite;
+                animation: spin 3s linear infinite;
+            }
+        }
+    }
+}
+
 .controls-container-right {
     position: absolute;
-    right: 0;    
+    right: 0;
     margin: 2rem;
     display: flex;
     flex-direction: column;
@@ -9,7 +41,7 @@
 
 .controls-container-left {
     position: absolute;
-    left: 0;    
+    left: 0;
     margin: 2rem;
     margin-left: 10rem;
     display: flex;
@@ -30,26 +62,29 @@ select {
     font-size: 1.6rem;
     padding: 1rem 4rem 1rem 1rem;
     background: var(--arrow-icon) no-repeat right 0.8em center / 1.4em,
-      linear-gradient(to left, var(--arrow-bg) 3em, var(--select-bg) 3em);
+        linear-gradient(to left, var(--arrow-bg) 3em, var(--select-bg) 3em);
     color: var(--primary-color);
     border-radius: 0.25em;
     box-shadow: 0 0 .2em 0 rgba(0, 0, 0, 0.2);
     cursor: pointer;
     font-weight: bold;
+
     /* Remove IE arrow */
     &::-ms-expand {
-      display: none;
+        display: none;
     }
+
     /* Remove focus outline */
     &:focus {
-      outline: none;
+        outline: none;
     }
+
     /* <option> colors */
     option {
-      color: inherit;
-      background-color: var(--option-bg);
+        color: inherit;
+        background-color: var(--option-bg);
     }
-  }
+}
 
 .title::before {
     content: "\279C";
@@ -86,6 +121,15 @@ select {
     background-color: rgba(255, 255, 255, .2);
     border-radius: .5rem;
     padding: .5rem;
+
+    .button-control.not-active {
+        display: none;
+    }
+
+    input[type="number"],
+    input[type="datetime-local"] {
+        color: var(--black-contrast);
+    }
 }
 
 .controls form {
@@ -115,20 +159,7 @@ form div {
     font-size: 1.2rem;
 }
 
-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-input {
-    background-color: transparent;
-    padding: 5px;
-    border: none;
-    border-bottom: 1px solid gray;
-}
-
-input[type="submit"], input[type="button"] {
+/* input[type="submit"], input[type="button"] {
     background: var(--primary-color);
     padding: 10px;
     border: none;
@@ -137,7 +168,7 @@ input[type="submit"], input[type="button"] {
     cursor: pointer;
     margin-top: 10px;
     border-radius: 4px;
-}
+} */
 
 .data:nth-child(6)::after {
     content: '------------';
@@ -166,9 +197,9 @@ canvas {
 
 canvas:active {
     cursor: grabbing;
-} 
+}
 
- .hovered {
+.hovered {
     cursor: help;
 }
 
