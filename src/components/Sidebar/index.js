@@ -7,6 +7,8 @@ import NavLinkItem from "./NavLinkItem";
 import { redirectPage, urlApiRequest } from "../../helpers/utils";
 import state, { subscribe } from "../../store";
 import toastify from "../../helpers/toastify";
+import { clearMarkdown, extractSnippets, highlightText, search } from "../Search/search";
+import { processInternalLinksSearch } from "../Search";
 
 const { nav, header, div, span, img, i, input, ul, li, a } = helpers(h);
 
@@ -42,12 +44,13 @@ const Sidebar = nav({ className: "sidebar close" }, [
         div({ className: "menu" }, [
             li({ className: "search-box" }, [
                 i({ className: "bx bx-search icon" }),
-                input({ type: "text", placeholder: "Pesquisar..." })
+                input({ type: "text", placeholder: "Pesquisar...", id: "searchInput" })
             ]),
             ul({ className: "menu-links" }, [
                 NavLinkItem({ href: "/", id: "home", icon: "bx-home-alt", name: "Home" }),
                 NavLinkItem({ href: `/3d${state.selectedProject && `?project=` + state.selectedProject.id}`, id: "three-d", icon: "bxs-analyse", name: "3D View" }),
                 NavLinkItem({ href: "/api", id: "api", icon: "bxl-graphql", name: "API" }),
+                NavLinkItem({ href: "/download", id: "download", icon: "bx-cloud-download", name: "Download" }),
                 NavLinkItem({ href: "/profile", id: "profile", icon: "bx-user", name: "Profile", customClass: "hide" }),
                 NavLinkItem({ href: "/config", id: "config", icon: "bx-cog", name: "Config", customClass: "hide" })
             ]),
@@ -83,6 +86,7 @@ const body = document.querySelector('body'),
     profile = sidebar.querySelector("#profile"),
     config = sidebar.querySelector("#config"),
     searchBtn = sidebar.querySelector(".search-box"),
+    searchInput = sidebar.querySelector("#searchInput"),
     modeSwitch = sidebar.querySelector(".toggle-switch"),
     btnLogin = sidebar.querySelector(".btn-login-logout"),
     modeText = sidebar.querySelector(".mode-text"),
@@ -92,6 +96,43 @@ const body = document.querySelector('body'),
 toggle.addEventListener("click", () => {
     sidebar.classList.toggle("close");
 });
+
+let timeout;
+searchInput.addEventListener("input", (e) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+        const query = e.target.value.trim();
+        if (query.length > 2) {
+            const results = search(query);
+            displayResults(results, query);
+        }
+    }, 500);
+})
+
+function displayResults(results, query) {
+    const listItems = div({className: "list-items"});
+    results.forEach(file => {
+        const snippets = extractSnippets(file.rawContent, query, 100);
+        const resultItem = document.createElement("a");
+        resultItem.classList.add("result-item");
+        
+        const snippetsHTML = snippets.map(snippet => `<p>${highlightText(snippet, query)}</p>`).join('');
+        const content = clearMarkdown(snippetsHTML);
+        const linkPathItem = file.path.split('/').slice(3).join('/');
+        resultItem.innerHTML = `
+        <h3>${linkPathItem}</h3>
+        ${content}
+        `;
+        resultItem.href = linkPathItem;
+        listItems.appendChild(resultItem);
+        redirectPage(`/search`);
+        history.pushState({ query }, null, `/search?query=${query}`);
+    })
+    const searchContainer = document.querySelector(".search-container");
+    searchContainer.innerHTML = "";
+    searchContainer.appendChild(listItems);
+    processInternalLinksSearch();
+}
 
 searchBtn.addEventListener("click", () => {
     sidebar.classList.remove("close");
@@ -120,8 +161,13 @@ btnLogin.lastChild.addEventListener("click", async (e) => {
             error: "",
             list: []
         };
+        state.selectedProject = {
+            loading: false,
+            error: ""
+        }
         state.user.loading = false;
         localStorage.setItem('userProjects', JSON.stringify([]));
+        localStorage.setItem('selectProject', undefined);
         redirectPage("/");
     } catch (error) {
         state.user.userInfo = {};

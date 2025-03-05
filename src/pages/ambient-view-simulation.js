@@ -6,9 +6,10 @@ import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { CSS2DRenderer } from 'three/examples/jsm/Addons.js';
 import { CSS2DObject } from 'three/examples/jsm/Addons.js';
-import { s2c, p2c, dateWithoutTimezone, correctionArrayHour } from '../helpers/utils';
+import { s2c, p2c, dateWithoutTimezone, correctionArrayHour, radiansToDegrees, degreesToRadians } from '../helpers/utils';
 import { SunPosition } from 'sun-position';
 import panelImage from '../assets/img/panel.png';
+import fontText from '../assets/fonts/helvetiker_regular.typeface.json'
 
 import { db, ref, onValue, get, child } from "../firebase/database";
 import state from "../store";
@@ -32,10 +33,14 @@ let effectController = {
 };
 let camera, scene, renderer, raycaster, mouse;
 let sky, sun, sphere, uniforms, coords = { latitude: null, longitude: null };
-let path = [], inputLat, inputLng, offsetWidth, offsetHeight, offsetWidthSideBar, solarPanel;
+let path = [], inputLat, inputLng, offsetWidth, offsetHeight, offsetWidthSideBar, solarPanel, arc1, arc2, halo1, halo2,
+    vector3, //Projeção do vetor solar no plano XZ
+    vector4; //Vetor solar
 
 const sunPosition = new SunPosition(coords.latitude, coords.longitude, new Date());
-const dataReferenceDb = ref(db, `data/users/${state.user.userInfo.uid}/projects/${state.user.projects.list[0]?.tag}`);
+const dataReferenceDb = ref(db, `data/users/${state.user.userInfo.uid}/projects`);
+const vector1 = new THREE.Vector3(-1, 0, 0), //Referencia de azimuth 0° Norte
+    vector2 = new THREE.Vector3(0, 0, 0); //Referencia geral, centro do plano
 
 function skyLight(elevation) {
     return {
@@ -44,6 +49,12 @@ function skyLight(elevation) {
         mieCoefficient: 6 * Math.pow(10, -6) * Math.pow(elevation, 2) - 0.0015 * elevation + 0.087,
         mieDirectionalG: 3 * Math.pow(10, -6) * Math.pow(elevation, 2) - 0.0005 * elevation + 0.998,
     }
+}
+
+function rotateObject(object, pointX = 0, pointY = 0, pointZ = 0) {
+    const sunVectorPosition = new THREE.Vector3(pointX, pointY, pointZ);
+    rotationMatrix.lookAt(sunVectorPosition, object.position, object.up);
+    targetQuaternion.setFromRotationMatrix(rotationMatrix);
 }
 
 export const ambientViewSimulation = (parentCanvas) => {
@@ -75,6 +86,7 @@ export const ambientViewSimulation = (parentCanvas) => {
         controlsPanel();
         getLocation();
         solarPanelRender();
+        // ArcAngle();
     }
 
     function render() {
@@ -89,21 +101,21 @@ export const ambientViewSimulation = (parentCanvas) => {
         dirY.normalize();
         const hexY = 0x00ff00;
         // Direction: right
-        const dirX = new THREE.Vector3(1, 0, 0);
+        const dirX = new THREE.Vector3(-1, 0, 0);
         dirX.normalize();
         const hexX = 0xff0000;
 
         // Direction: front
-        const dirZ = new THREE.Vector3(0, 0, 1);
+        const dirZ = new THREE.Vector3(0, 0, -1);
         dirX.normalize();
         const hexZ = 0x0000ff;
 
         const arrowYHelper = new THREE.ArrowHelper(dirY, origin, length, hexY);
         arrowYHelper.translateY(200);
         const arrowXHelper = new THREE.ArrowHelper(dirX, origin, length, hexX);
-        arrowXHelper.translateX(-200);
+        arrowXHelper.translateX(200);
         const arrowZHelper = new THREE.ArrowHelper(dirZ, origin, length, hexZ);
-        arrowZHelper.translateZ(-200);
+        arrowZHelper.translateZ(200);
 
         scene.add(arrowYHelper);
         scene.add(arrowXHelper);
@@ -226,7 +238,7 @@ export const ambientViewSimulation = (parentCanvas) => {
                 { text: 'S', rotate: 1.54 },
                 { text: 'O', rotate: -0.03 }
             ];
-            const polarAngles = 45;
+            const polarAngles = 22.5;
             const altitude = 15;
 
             // Texto com pontos cardeais
@@ -319,7 +331,7 @@ export const ambientViewSimulation = (parentCanvas) => {
         });
         date.addEventListener("input", async function (event) {
             clearTimeout(waitInput);
-            for (let i = 0; i <= 1; i++) {
+            for (let i = 0; i <= 2; i++) {
                 scene.children.forEach(element => {
                     if (element.name !== '') {
                         scene.remove(scene.getObjectByName(element.name))
@@ -370,7 +382,7 @@ export const ambientViewSimulation = (parentCanvas) => {
                     await solarChart();
                     await makeArcLines(arcLineData, true);
                     analemma();
-                    render()
+                    render();
                 }
             }, 600);
         });
@@ -402,6 +414,7 @@ export const ambientViewSimulation = (parentCanvas) => {
         async function loopSunPath(position) {
             sphere.position.set(position.x, position.y, position.z);
             // rotateObject(solarPanel, position.x * 500, position.y * 500, position.z * 500);
+            ArcAngle();
             let infoData = [
                 position.elevation,
                 position.azimuth,
@@ -455,8 +468,12 @@ export const ambientViewSimulation = (parentCanvas) => {
         path = [];
         sunPosition.setDateTime(object.date);
         let date = object.date;
-        let aurora = (await sunPosition.getLocTime()).sunrise;
-        let crepusculo = (await sunPosition.getLocTime()).sunset;
+        let aurora = isNaN((await sunPosition.getLocTime()).sunrise) ?
+            new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0)
+            : (await sunPosition.getLocTime()).sunrise;
+        let crepusculo = isNaN((await sunPosition.getLocTime()).sunset) ?
+            new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59)
+            : (await sunPosition.getLocTime()).sunset;
         let hourControl = aurora.getHours();
         let minuteControl = aurora.getMinutes();
         let secondsControl = aurora.getSeconds();
@@ -480,21 +497,23 @@ export const ambientViewSimulation = (parentCanvas) => {
             hourControl = increment[0];
             minuteControl = increment[1];
         }
+        // Verifica se a coordenada Y (eixo vertical), tem pelo menos um valor maior que zero,
+        // ou seja, o Sol está acima do horizonte em algum momento.
+        if (arc.filter(coord => coord.y > 0).length > 0) {
+            const lineMaterial = new THREE.LineBasicMaterial({ color: object.color, linewidth: 1.5 });
+            const curve = new THREE.CatmullRomCurve3(arc);
+            const newPoints = curve.getPoints(50);
+            const geometry = new THREE.BufferGeometry().setFromPoints(newPoints);
+            const line = new THREE.Line(geometry, lineMaterial);
+            line.name = object.name ? object.name : '';
+            scene.add(line);
+        }
 
-        const lineMaterial = new THREE.LineBasicMaterial({ color: object.color, linewidth: 1.5 });
-        const curve = new THREE.CatmullRomCurve3(arc);
-        const newPoints = curve.getPoints(50);
-        const geometry = new THREE.BufferGeometry().setFromPoints(newPoints);
-        const line = new THREE.Line(geometry, lineMaterial);
-        line.name = object.name ? object.name : '';
-        scene.add(line);
     }
 
     async function analemma() {
-
-        for (let index = 1; index < 24; index++) {
+        for (let index = 0; index < 24; index++) {
             scene.remove(`${index < 10 ? '0' + index : index}h`);
-            // render();
             let pathAnalemma = [];
             let currenteYear = new Date().getFullYear();
             let firstDay = new Date(currenteYear, 0, 1, index, 0, 0);
@@ -521,7 +540,6 @@ export const ambientViewSimulation = (parentCanvas) => {
                 labelInfo();
                 scene.add(line);
             }
-            // render();
         }
     }
 
@@ -612,15 +630,10 @@ export const ambientViewSimulation = (parentCanvas) => {
             new THREE.MeshBasicMaterial({ color: 0x555555 }),
         ];
         solarPanel = new THREE.Mesh(cubeGeometry, materialArray);
-        solarPanel.name = "Solar Panel";
         solarPanel.translateY(500);
-        // scene.add(solarPanel);
-    }
-
-    function rotateObject(object, pointX = 0, pointY = 0, pointZ = 0) {
-        const sunVectorPosition = new THREE.Vector3(pointX, pointY, pointZ);
-        rotationMatrix.lookAt(sunVectorPosition, object.position, object.up);
-        targetQuaternion.setFromRotationMatrix(rotationMatrix);
+        solarPanel.visible = false;
+        solarPanel.name = "";
+        scene.add(solarPanel);
     }
 
     function animate() {
@@ -635,12 +648,89 @@ export const ambientViewSimulation = (parentCanvas) => {
     // Update relatime position tracker
     onValue(dataReferenceDb, (snapshot) => {
         const data = snapshot.val();
-        if (data) {
-            const direction = s2c(RADIUS_PATH, degToRad(data.azimuth - 180), degToRad(data.elevation));
-            // Multipica por 500 para a projeção ficar na linha do horizonte
-            rotateObject(solarPanel, direction[0] * 500, direction[2] * 500, direction[1] * 500);
+        if (state.selectedProject.id !== undefined && snapshot.exists()) {
+            if (data[state.selectedProject.id]) {
+                state.selectedProject.elevation = data[state.selectedProject.id].elevation;
+                state.selectedProject.azimuth = data[state.selectedProject.id].azimuth;
+                state.selectedProject.epochTime = data[state.selectedProject.id].epoch_time;
+                const direction = s2c(RADIUS_PATH, degToRad(data[state.selectedProject.id].azimuth - 180), degToRad(data[state.selectedProject.id].elevation));
+                // Multipica por 500 para a projeção ficar na linha do horizonte
+                rotateObject(solarPanel, direction[0] * 500, direction[2] * 500, direction[1] * 500);
+            }
         }
     });
+
+    function generateArc(Vectors, elevation = false, rotate = 0) {
+        const N = 60;
+        let radius = 200;
+        let thredRender;
+        let angleEndRotate;
+        if (elevation) {
+            let angleStart = 0;
+            let angleEnd = Vectors.p1.angleTo(Vectors.p3);
+            var geometry = new THREE.CircleGeometry(radius, N, Math.PI, angleEnd);
+
+            var material = new THREE.MeshBasicMaterial({ color: 0x2f2a22, side: THREE.DoubleSide }); //white circle
+            arc2 = new THREE.Mesh(geometry, material);
+            arc2.rotateY(-rotate); //rotate to the right position
+            arc2.rotateZ(-Math.PI);
+            scene.add(arc2);
+            arc2.name = radiansToDegrees(angleEnd).toFixed(2) + '°';
+            
+
+            /* create halo */
+            var unit = 1 / radius;
+            var biggerGeometry = new THREE.CircleGeometry(radius + 2, N, (angleStart + Math.PI) - 2 * unit, (angleEnd + angleStart) + 4 * unit);
+            var haloGeometry = new THREE.EdgesGeometry(biggerGeometry);
+            var haloMaterial = new THREE.LineBasicMaterial({ color: 0xA020F0 });
+            halo2 = new THREE.LineSegments(haloGeometry, haloMaterial);
+            arc2.add(halo2);
+            halo2.name = radiansToDegrees(angleEnd).toFixed(2) + '°';
+            thredRender = arc2;
+        } else {
+            let angleStart = Math.atan2(Vectors.p1.z - Vectors.p2.z, Vectors.p1.x - Vectors.p2.x);
+            let angleEnd = Math.atan2(Vectors.p3.z - Vectors.p2.z, Vectors.p3.x - Vectors.p2.x);
+            angleEndRotate = angleEnd;
+            var geometry = new THREE.CircleGeometry(radius, N, (angleStart + Math.PI), (angleEnd + angleStart));
+
+            var material = new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide }); //white circle
+            arc1 = new THREE.Mesh(geometry, material);
+            arc1.rotateX(-Math.PI / 2);
+            arc1.rotateY(-Math.PI);
+            scene.add(arc1);
+            arc1.name = radiansToDegrees(angleEnd+angleStart).toFixed(2) + '°';
+            /* create halo */
+            var unit = 1 / radius;
+            var biggerGeometry = new THREE.CircleGeometry(radius + 2, N, (angleStart + Math.PI) - 2 * unit, (angleEnd + angleStart) + 4 * unit);
+            var haloGeometry = new THREE.EdgesGeometry(biggerGeometry);
+            var haloMaterial = new THREE.LineBasicMaterial({ color: 0xA020F0 }); //black halo    
+            halo1 = new THREE.LineSegments(haloGeometry, haloMaterial);
+            arc1.add(halo1);
+            halo1.name = radiansToDegrees(angleEnd+angleStart).toFixed(2) + '°';
+            thredRender = arc1;
+        }
+        return {
+            render: thredRender,
+            rotateAngle: angleEndRotate
+        }
+    }
+
+    function ArcAngle() {
+        vector3 = new THREE.Vector3(sphere.position.x, 0, sphere.position.z);
+        vector4 = new THREE.Vector3(sphere.position.x, sphere.position.y, sphere.position.z);
+
+        // console.log(scene.children);
+        if (arc1) scene.remove(arc1);
+        // console.log(scene.children);
+        if (arc2) scene.remove(arc2);
+
+        let angleAzimuth = generateArc({ p1: vector1, p2: vector2, p3: vector3 });
+        arc1 = angleAzimuth.render;
+        let rotate = angleAzimuth.rotateAngle;
+        arc2 = generateArc({ p1: vector3, p2: vector2, p3: vector4 }, true, rotate).render;
+
+        scene.add(arc1, arc2);
+    }
 
 }
 
@@ -659,4 +749,28 @@ export const positionSphereLigth = (elevation, azimuth) => {
     uniforms['sunPosition'].value.copy(sun);
     sun.setFromSphericalCoords(1, phi, theta);
     uniforms['sunPosition'].value.copy(sun);
+}
+
+export const renderPanel = () => {
+    const dbRef = ref(db);
+    get(child(dbRef, `data/users/${state.user.userInfo.uid}/projects/${state.selectedProject.id}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            state.selectedProject.elevation = data.elevation;
+            state.selectedProject.azimuth = data.azimuth;
+            state.selectedProject.epochTime = data.epoch_time;
+            const direction = s2c(RADIUS_PATH, degToRad(data.azimuth - 180), degToRad(data.elevation));
+            // Multipica por 500 para a projeção ficar na linha do horizonte
+            rotateObject(solarPanel, direction[0] * 500, direction[2] * 500, direction[1] * 500);
+            solarPanel.visible = true;
+        } else {
+            state.selectedProject.elevation = null;
+            state.selectedProject.azimuth = null;
+            state.selectedProject.epochTime = null;
+        }
+    })
+}
+
+export const removePanel = () => {
+    solarPanel.visible = false;
 }

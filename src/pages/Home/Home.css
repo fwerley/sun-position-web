@@ -1,23 +1,65 @@
+body.dark {
+    .md-container {
+        a {
+            text-decoration: underline;
+            color: var(--text-color);
+        }
+    }
+}
+
 .md-container {
+    min-height: 88vh;
     font-size: 1.6rem;
     margin: 4rem 0rem;
-    padding: 1rem 5rem;
+    padding: 5rem 15rem;
     text-align: justify;
     text-justify: inter-word;
     color: var(--text-color);
     background-color: var(--primary-color-light);
     border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .md-main {
+        iframe {
+            width: 30vw;
+            height: 17vw;
+            /* 100/56.25 = 560/315 = 1.778 */
+        }
+
+        .column-right {
+            width: 40%;
+            float: left;
+            margin-right: 1rem;
+
+            img {
+                width: 100%;
+            }
+        }
+
+        .tutorial-img {
+            width: 60%;
+            margin: 0 auto;
+            padding: 1rem 0;
+
+            img {
+                width: 100%;
+            }
+        }
+    }
 
     a {
         text-decoration: none;
         color: var(--primary-color);
     }
 
-    img {
+    [alt$="image"] {
         display: block;
         margin-left: auto;
         margin-right: auto;
-        width: 30%;
+        min-width: 30%;
+        max-width: 70%;
     }
 
     ol,
@@ -28,7 +70,7 @@
     }
 
     blockquote {
-        background: #f9f9f9;
+        background: var(--black-contrast);
         border-left: 1rem solid #ccc;
         margin: 1.5em 10px;
         padding: 0.5em 10px;
@@ -46,5 +88,48 @@
 
     blockquote p {
         display: inline;
+    }
+
+    .bottom-navigation {
+        bottom: 0;
+        margin-top: 2rem;
+
+        .navigation-container {
+            padding: 1rem;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+
+            .control a {
+                display: flex;
+                align-items: center
+            }
+
+            .bx {
+                font-size: 5rem;
+            }
+        }
+    }
+}
+
+
+@media only screen and (max-width: 760px) {
+    .md-container {
+        padding: 1rem 1rem;
+
+        .md-main {
+            .column-right {
+                width: 100%;
+                float: none;    
+                img {
+                    width: 100%;
+                }
+            }
+        }
+
+        img {
+            min-width: 50%;
+            max-width: 90%;
+        }
     }
 }

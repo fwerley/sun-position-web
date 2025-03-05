@@ -37,7 +37,7 @@ const registerOrUpdateProject = async (e) => {
                     'Content-Type': 'application/json'
                 },
                 headers: {
-                    Authorization: state.user.userInfo.stsTokenManager.accessToken
+                    Authorization: `Bearer ${state.user.userInfo.stsTokenManager.accessToken}`
                 },
                 body: JSON.stringify({
                     name,
@@ -53,7 +53,7 @@ const registerOrUpdateProject = async (e) => {
                     'Content-Type': 'application/json'
                 },
                 headers: {
-                    Authorization: state.user.userInfo.stsTokenManager.accessToken
+                    Authorization: `Bearer ${state.user.userInfo.stsTokenManager.accessToken}`
                 },
                 body: JSON.stringify({
                     name,
@@ -75,7 +75,7 @@ const registerOrUpdateProject = async (e) => {
                 'Content-Type': 'application/json'
             },
             headers: {
-                Authorization: state.user.userInfo.stsTokenManager.accessToken
+                Authorization: `Bearer ${state.user.userInfo.stsTokenManager.accessToken}`
             }
         })
 
@@ -172,7 +172,12 @@ const Modal = (values = null) => div({ className: "modal" }, [
             div({ className: "modal-column" }, [
                 div({ className: "modal-line" }, [
                     label(i({ className: "bx bxs-purchase-tag-alt" })),
-                    input({ type: "text", placeholder: "Nome do projeto", name: "project-name", value: values && values.name })
+                    input({ 
+                        type: "text", 
+                        placeholder: "Nome do projeto", 
+                        name: "project-name",
+                        required: true, 
+                        value: values && values.name })
                 ]),
                 div({ className: "modal-line" }, [
                     label(i({ className: "bx bxs-map" })),

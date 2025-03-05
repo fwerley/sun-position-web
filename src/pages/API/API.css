@@ -6,3 +6,32 @@ iframe {
     overflow-y: hidden;
     border-radius: 1rem;
 }
+
+embed {
+    border: none;
+    width: 100%;
+    height: 92.2vh;
+    margin: 1rem 0rem;
+    overflow-y: hidden;
+    border-radius: 1rem;
+}
+
+.embed-api {
+    background: url(https://cdn.pixabay.com/animation/2023/08/11/21/18/21-18-05-265_512.gif) center center no-repeat;
+    background-size: 6rem;
+}
+
+.loader-container {
+    display: flex;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    justify-content: center;
+
+    &.disabled {
+        opacity: 0;
+        visibility: hidden;
+    }
+}

@@ -2,4 +2,91 @@
     background-color: rgba(255, 255, 255, .2);
     border-radius: .5rem;
     padding: .5rem;
+
+    &.no-active {
+        display: none;
+    }
+
+
+    .title::before {
+        content: "\1f6c8";
+        display: inline-block;
+        padding: .2rem;
+        transform: rotate(0deg);
+    }
+
+    .title {
+        cursor: auto;
+        font-weight: bold;
+        border-bottom: 1px solid rgb(204, 204, 204);
+        padding: 4px;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .detail-module {
+        padding: .4rem;
+        font-size: 1.2rem;
+
+        .row-info-panel {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            pointer-events: none;
+            user-select: none;
+
+            &.no-active {
+                display: none;
+            }
+
+            &.status-panel&.not-active {
+                .pulse {
+                    background-color: red;
+
+                    span {
+                        background-color: red;
+                    }
+                }
+            }
+
+            .pulse {
+                position: relative;
+                width: 1rem;
+                height: 1rem;
+                background-color: lime;
+                border-radius: 50%;
+
+                span {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    background-color: lime;
+                    border-radius: inherit;
+                    opacity: 0.8;
+                    animation: pulseAnimation 2s ease-in-out infinite;
+                    animation-delay: calc(1s * var(--i));
+                }
+            }
+
+        }
+
+        .last-update {
+            flex-direction: column;
+            gap: inherit;
+            align-items: flex-start;
+
+            span {
+                margin-left: 1rem;
+            }
+        }
+    }
+
+}
+
+@keyframes pulseAnimation {
+    100% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
 }

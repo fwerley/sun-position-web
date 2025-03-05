@@ -31,6 +31,15 @@ hr {
         flex: 4;
         inline-size: 150px;
         overflow-wrap: break-word;
+
+        .spinner {
+            display: flex;
+            i {
+                -webkit-animation: spin 3s linear infinite;
+                -moz-animation: spin 3s linear infinite;
+                animation: spin 3s linear infinite;
+            }
+        }
     }
 
     .item-value1 {

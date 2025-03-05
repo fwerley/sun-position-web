@@ -12,13 +12,17 @@
     "hyperscript": "^2.0.2",
     "hyperscript-helpers": "^3.0.3",
     "marked": "^15.0.4",
+    "moment-timezone": "^0.5.46",
+    "prismjs": "^1.29.0",
     "redux-watch": "^1.2.0",
-    "sun-position": "^0.1.0",
+    "sun-position": "^0.1.1",
     "three": "^0.158.0",
     "toastify-js": "^1.12.0",
-    "valtio": "^2.0.0"
+    "valtio": "^2.0.0",
+    "vite-plugin-prismjs": "^0.0.11"
   },
   "devDependencies": {
+    "@types/prismjs": "^1.26.5",
     "vite": "^5.0.2"
   }
 }

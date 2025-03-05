@@ -1,19 +1,19 @@
 import h from "hyperscript";
 import helpers from 'hyperscript-helpers';
-import { ambientViewSimulation, positionSphereLigth } from "../ambient-view-simulation";
+import { ambientViewSimulation, positionSphereLigth, removePanel, renderPanel } from "../ambient-view-simulation";
 import { SunPosition } from "sun-position";
 import Worker from "../../helpers/worker?worker"
-import state, { subscribe } from "../../store";
+import state, { reaction, subscribe } from "../../store";
 
 import "./view-3d.css";
 import BoxInfoPanel from "../../components/BoxInfoPanel";
-import { urlApiRequest } from "../../helpers/utils";
+import { interDate, urlApiRequest } from "../../helpers/utils";
 import toastify from "../../helpers/toastify";
 
 const { div, form, label, input, select, option, i } = helpers(h);
-let sunPosition,
-    intervalWorker = new Worker();
-const projects = state.user.projects.list.map(project => {
+const sunPosition = new SunPosition(0, 0, new Date());
+let intervalWorker = new Worker();
+let projects = state.user.projects.list.map(project => {
     return {
         name: project.name,
         paramUrl: project.name.trim().toLowerCase().replace(/\s/g, "-"),
@@ -41,10 +41,12 @@ const groupImputs = div([
 
 const selectProject = async (event) => {
     intervalWorker.terminate();
+    removePanel();
     state.selectedProject.id = event.target.value;
     localStorage.setItem('selectProject', JSON.stringify({ id: event.target.value }));
     history.pushState("3d", "3d", `?project=${event.target.value}`);
     const myproject = state.user.projects.list.filter(item => item.tag === event.target.value);
+    let controlsContainer = document.body.querySelector(".controls-container-right");
     let lat = document.body.querySelector("#lat");
     let lng = document.body.querySelector("#lng");
     let dateTime = document.body.querySelector("#date");
@@ -55,29 +57,11 @@ const selectProject = async (event) => {
         state.selectedProject.loading = true;
         lat.value = myproject[0].lat;
         lng.value = myproject[0].lng;
-        sunPosition = new SunPosition(myproject[0].lat, myproject[0].lng, new Date());
+        sunPosition.setLatitude(myproject[0].lat);
+        sunPosition.setLongitude(myproject[0].lng);
         buttonsContainer.classList.add("not-active");
         try {
-            const getTimeZone = await fetch(urlApiRequest(`service/time-zone`), {
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json, text/plain, */*',
-                    'Content-Type': 'application/json'
-                },
-                headers: {
-                    'x-user-id': state.user.userInfo.uid,
-                    'x-api-key': state.user.userInfo.userApiKey.key
-                },
-                body: JSON.stringify({
-                    lat: parseFloat(myproject[0].lat),
-                    lng: parseFloat(myproject[0].lng)
-                })
-            })
-            let { data, timeZone, error, status } = await getTimeZone.json();
-            if (status !== "Success") {
-                throw new Error(error);
-            }
-            let date = new Date(new Date().toLocaleString('en', { timeZone: timeZone.zoneName })
+            let date = new Date(new Date().toLocaleString('en', { timeZone: myproject[0].timeZone.zoneName })
                 .toString().split('GMT')[0] + ' UTC').toISOString().split('.')[0];
             dateTime.value = date;
             dateTime.dispatchEvent(new Event('input'));
@@ -85,6 +69,40 @@ const selectProject = async (event) => {
             let dateOffset = new Date(date);
             sunPosition.setDateTime(dateOffset);
             intervalWorker.onmessage = async () => {
+                // Atualiza informações de tempo de conexão do modulo  na tela info Info Module
+                let elev = document.body.querySelector("#info-module-elevation");
+                let azi = document.body.querySelector("#info-module-azimuth");
+                let lastUpdate = document.body.querySelector("#last-update");
+                let statusPanel = document.body.querySelector("#status-panel");
+                let statusPanelSpan = document.body.querySelector("#status-panel #status-span");
+                if (state.selectedProject.epochTime) {
+                    const { days, hours, minutes } = interDate(state.selectedProject.epochTime, myproject[0].timeZone.zoneName);
+                    if ((days > 0 || hours > 0 || minutes > 1) && statusPanel) {
+                        statusPanel.classList.add("not-active");
+                        statusPanelSpan.innerHTML = "Offline";
+                    } else {
+                        if (statusPanelSpan && statusPanel) {
+                            statusPanelSpan.innerHTML = "Online";
+                            statusPanel.classList.remove("not-active");
+                        }
+                    }
+                    let lastUpdate = document.body.querySelector("#last-update span");
+                    if (lastUpdate) {
+                        let stringFormatted = (days > 0) ? `${days}d-` : '';
+                        stringFormatted += (hours > 0) ? `${hours}h-` : '';
+                        stringFormatted += `${minutes}m`;
+                        lastUpdate.innerHTML = stringFormatted;
+                    }
+                } else {
+                    if (elev) {
+                        elev.classList.add("no-active");
+                        azi.classList.add("no-active");
+                        lastUpdate.classList.add("no-active");
+                        statusPanel.classList.add("not-active");
+                        statusPanelSpan.innerHTML = "Offline";
+                        removePanel();
+                    }
+                }
                 // Update time in display
                 const comp = new Date(dateOffset.setSeconds(dateOffset.getSeconds() + 1));
                 // Update elevation and azimuth target
@@ -102,7 +120,10 @@ const selectProject = async (event) => {
             toastify(error.message);
         }
         state.selectedProject.loading = false;
+        controlsContainer.querySelector(".info-panel").classList.remove("no-active");
+        renderPanel();
     } else {
+        controlsContainer.querySelector(".info-panel").classList.add("no-active");
         buttonsContainer.classList.remove("not-active");
     }
 }
@@ -141,42 +162,50 @@ const View3d = div({ className: "container-full" }, [
 // o canvas em cima
 ambientViewSimulation(View3d);
 
-let intervalRenderProject = setInterval(() => {
-    if (state.selectedProject !== "undefined" && window.location.pathname === "/3d") {
-        let selectControl = View3d.querySelector("select");
-        selectControl.dispatchEvent(new Event('change'));
-        clearInterval(intervalRenderProject);
-    }
-}, 500);
-
-subscribe(state.user, async () => {
-    if (projects.length !== state.user.projects.list.length) {
-        const containerSelect = View3d.querySelector(".controls-pup");
-        containerSelect.innerHTML = "";
-        let projectsUpdate = state.user.projects.list.map(project => {
-            return {
-                name: project.name,
-                paramUrl: project.name.trim().toLowerCase().replace(/\s/g, "-"),
-                tag: project.tag
-            }
-        });
+reaction(state, ['user.projects.list'], ([list]) => {
+    let intervalRenderProject;
+    intervalRenderProject = setInterval(() => {
+        let listSelect = document.body.querySelector(".controls-pup");
+        const data = state.user.projects.list;
         const updateSelect = select({ onchange: selectProject }, [
             option({ selected: true, value: `default` }, "Simulação"),
-            projectsUpdate.map(project => (
+            data.map(project => (
                 option({ selected: project.tag === state.selectedProject.id, value: `${project.tag}` }, project.name)
             ))
         ]);
-        containerSelect.appendChild(updateSelect);
-    }
-})
+        
+        if (listSelect !== null && window.location.pathname === "/3d") {
+            listSelect.innerHTML = "";
+            listSelect.appendChild(updateSelect);
+            if (state.selectedProject.id !== "default") {
+                updateSelect.dispatchEvent(new Event('change'));
+            }
+            clearInterval(intervalRenderProject);
+        }
+    }, 1000);
+});
 
-subscribe(state.selectedProject, async () => {
-    let loaderSpinner =  View3d.querySelector(".loader")
-    if (state.selectedProject.loading) {
+reaction(state, ['selectedProject.loading'], ([loading]) => {
+    let loaderSpinner = View3d.querySelector(".loader");
+    if (loading) {
         loaderSpinner.classList.remove("no-active");
     } else {
         loaderSpinner.classList.add("no-active");
     }
-})
+});
+
+reaction(state, ['selectedProject.id'], ([]) => {
+    if (window.location.pathname === "/3d" && state.selectedProject.id) {
+        const select = View3d.querySelector("select");
+        select.dispatchEvent(new Event('change'));
+    }
+});
+
+let loadProject = setInterval(() => {
+    if (state.selectedProject.id !== "default" && window.location.pathname === "/3d") {
+        View3d.querySelector("select").dispatchEvent(new Event('change'));
+        clearInterval(loadProject);
+    } 
+}, 500);
 
 export default View3d;

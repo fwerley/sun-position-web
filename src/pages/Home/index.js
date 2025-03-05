@@ -1,11 +1,9 @@
 import h from "hyperscript";
-import helpers from 'hyperscript-helpers';
+import helpers from "hyperscript-helpers";
 import { marked } from "marked";
 import "./Home.css";
 
-import mdTest from '../../assets/MD/test.md';
-
-const { div, h2 } = helpers(h);
+const { div } = helpers(h);
 
 
 const Home = div({ className: "container" },
@@ -15,13 +13,49 @@ const Home = div({ className: "container" },
 
 const mdContainer = Home.querySelector(".md-container");
 
-const readMD = async (filePath) => {
-    const md = await fetch(mdTest);
-    const response = await md.text();
-    const html = marked.parse(response);
-    mdContainer.innerHTML = html;
+export const loadMarkdown = async (file) => {
+    try {
+        const response = await fetch(`/markdown/${file}`);
+        if (!response.ok) throw new Error("Erro ao carregar o arquivo.");
+        const markdown = await response.text();
+
+        mdContainer.innerHTML = marked.parse(markdown);
+
+        // Processa links internos
+        processInternalLinks();
+        Prism.highlightAll();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+        mdContainer.innerHTML = "<p>Erro ao carregar o conteúdo.</p>";
+        console.error(error);
+    }
 }
 
-readMD();
+function processInternalLinks() {
+    const links = mdContainer.querySelectorAll("a[href$='.md']");
+    links.forEach(link => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const file = link.getAttribute("href");
+            history.pushState(null, "", `?file=${file}`);
+            loadMarkdown(file);
+        });
+    });
+};
+
+function loadInitialFile() {
+    const urlParams = new URLSearchParams(window.location.search);    
+    const file = urlParams.get("file") || "home/index.md";
+    loadMarkdown(file);
+}
+
+window.addEventListener("popstate", () => {
+    const file = new URLSearchParams(window.location.search).get("file") || "home/index.md";
+    if (file) loadMarkdown(file);
+})
+
+loadInitialFile();
+
+export { loadInitialFile }
 
 export default Home;

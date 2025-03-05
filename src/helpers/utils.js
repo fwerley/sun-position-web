@@ -1,4 +1,5 @@
 import subjects from "./subject";
+import moment from "moment-timezone";
 
 // Polar to Cartesian [r, theta] => [x, y]
 const p2c = pt => [pt[0] * Math.cos(pt[1]), pt[0] * Math.sin(pt[1])];
@@ -80,8 +81,26 @@ const urlApiRequest = (sufix) => {
 
 const redirectPage = (url) => {
     let notParams = url.split("?")[0];
-    subjects.handlePageChange(notParams.substring(1));
     window.history.pushState(notParams, capitalize(notParams), url);
+    subjects.handlePageChange(notParams.substring(1));
+}
+
+const interDate = (epochTimeInit, TZ) => {
+    let timeInit = epochTimeInit.toString();
+    const momentt = moment.tz(TZ).unix();
+    timeInit = timeInit.substring(0, 10);
+    const gap = Math.abs(parseInt(momentt) - parseInt(timeInit));
+    const days = gap / (60 * 60 * 24);
+    let hours = (days - Math.floor(days));
+    hours = hours * 24;
+    let minutes = (hours - Math.floor(hours));
+    minutes = minutes * 60;
+
+    return {
+        days: parseInt(days),
+        hours: parseInt(hours),
+        minutes: parseInt(minutes)
+    }
 }
 
 export {
@@ -89,6 +108,7 @@ export {
     c2p,
     s2c,
     hd2hms,
+    interDate,
     capitalize,
     redirectPage,
     urlApiRequest,

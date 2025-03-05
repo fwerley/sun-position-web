@@ -13,7 +13,7 @@
     --body-color: #e4e9f7;
     --sidebar-color: #fff;
     --primary-color: #695cfe;
-    --primary-color-light: #f6f5ff;
+    --primary-color-light: #fefefe;
     --toggle-color: #ddd;
     --text-color: #707070;
     --text-color-light: #fdfdfdfd;
@@ -108,6 +108,11 @@ input[type="button"] {
         &:hover,
         &:focus {
             background-color: var(--primary-color);
+        }
+
+        &:disabled {
+            cursor: default;
+            background-color: var(--text-color);
         }
     }
 }

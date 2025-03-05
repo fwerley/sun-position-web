@@ -1,6 +1,14 @@
 import { defineConfig } from "vite";
+import prism from "vite-plugin-prismjs";
 
 export default defineConfig({
-    base: '',
-    assetsInclude: ['**/*.md']
-})
+    assetsInclude: ['**/*.md'],
+    plugins: [
+        prism({
+            languages: ['javascript', 'css', 'html', 'json'],
+            plugins: ['line-numbers'],
+            theme: 'tomorrow',
+            css: true,
+        }),
+    ],
+});

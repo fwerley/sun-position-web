@@ -23,19 +23,19 @@ subscribe(state.user, async () => {
                 'Content-Type': 'application/json'
             },
             headers: {
-                Authorization: state.user.userInfo.stsTokenManager.accessToken
+                Authorization: `Bearer ${state.user.userInfo.stsTokenManager.accessToken}`
             }
         })
 
         let { response: responseApiKey, status: statusApiKey } = await APIKey.json();
-        if(statusApiKey === "Success") {
-            state.user.userInfo.userApiKey = responseApiKey.apiKey;
+        if (statusApiKey === "Success") {
+            state.user.userInfo.userApiKey = responseApiKey?.apiKey.key;
             localStorage.setItem('userInfo', JSON.stringify(state.user.userInfo));
         }
     }
 });
 
-const submitHandler = async (e) => {
+const handlerLogin = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     state.user.loading = true;
@@ -56,8 +56,9 @@ const submitHandler = async (e) => {
         if (user === undefined) {
             throw new Error(msg.code);
         }
+        e.target.reset();
         state.user.userInfo = user;
-        state.user.loading = false;        
+        state.user.loading = false;
         localStorage.setItem('userInfo', JSON.stringify(state.user.userInfo));
         toastify("Login efetuado");
         // -----------------------------------------------------
@@ -69,7 +70,7 @@ const submitHandler = async (e) => {
                 'Content-Type': 'application/json'
             },
             headers: {
-                Authorization: state.user.userInfo.stsTokenManager.accessToken
+                Authorization: `Bearer ${state.user.userInfo.stsTokenManager.accessToken}`
             }
         })
 
@@ -89,11 +90,40 @@ const submitHandler = async (e) => {
     }
 };
 
+const handlerRegister = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const clickLoginEvent = document.querySelector(".login-form .message a");
+    try {
+        const login = await fetch(urlApiRequest("user/register"), {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: formData.get("name"),
+                email: formData.get("email"),
+                password: formData.get("password")
+            })
+        });
+        let { status, msg } = await login.json();
+        if (status !== "Success") {
+            throw new Error(msg);
+        }
+        toastify(msg);
+        e.target.reset();
+        clickLoginEvent.dispatchEvent(new Event('click'));
+    } catch (error) {
+        toastify(error.message);
+    }
+}
+
 const LoginPage = div({ className: "container container-full" },
     div({ className: "login-page" }, [
         div({ className: "form" }, [
-            form({ className: "register-form no-height" }, [
-                input({ type: "text", placeholder: "nome", name: "nome" }),
+            form({ className: "register-form no-height", onsubmit: handlerRegister }, [
+                input({ type: "text", placeholder: "nome", name: "name" }),
                 input({ type: "email", placeholder: "email", name: "email" }),
                 input({ type: "password", placeholder: "senha", name: "password" }),
                 input({ className: "is-primary", type: "submit", value: "Cadastrar" }),
@@ -102,7 +132,7 @@ const LoginPage = div({ className: "container container-full" },
                     a({ href: "#" }, "Logar")
                 ])
             ]),
-            form({ className: "login-form", onsubmit: submitHandler }, [
+            form({ className: "login-form", onsubmit: handlerLogin }, [
                 input({ type: "email", placeholder: "email", name: "email" }),
                 input({ type: "password", placeholder: "senha", name: "password" }),
                 input({ className: "is-primary", type: "submit", value: "Login" }),

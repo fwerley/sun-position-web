@@ -1,0 +1,51 @@
+.download-container {
+    font-size: 1.6rem;
+    color: var(--text-color);
+    margin-top: 1rem;
+    background-color: var(--primary-color-light);
+    padding: 4rem;
+    border-radius: 1rem;
+    min-height: 85vh;
+    overflow-x: scroll;
+    
+    .styled-table {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        min-width: 400px;
+        box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.15);
+        border-radius: 1rem;
+        overflow: hidden;
+
+        thead tr {
+            background-color: var(--body-color);
+            color: var(--text-color);
+            text-align: left;
+
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #dddddd;
+
+            &:nth-of-type(even) {
+                background-color: #f3f3f3;
+            }
+
+            &:last-of-type {
+                border-bottom: 2px solid var(--primary-color);
+            }
+
+            &.active-row {
+                font-weight: bold;
+                color: var(--primary-color);
+            }
+        }
+
+    }
+}

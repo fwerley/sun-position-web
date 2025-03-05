@@ -1,7 +1,7 @@
 import h from "hyperscript";
 import helpers from 'hyperscript-helpers';
 import DataTable, { grid, formatDataTableItem, gridH } from "../components/DataTable";
-import state, { subscribe } from "../store/index";
+import state, { reaction, subscribe } from "../store/index";
 import Modal from "../components/Modal";
 import { urlApiRequest } from "../helpers/utils";
 import toastify from "../helpers/toastify";
@@ -32,7 +32,7 @@ const deleteItemHandler = async (row) => {
                     'Content-Type': 'application/json'
                 },
                 headers: {
-                    Authorization: state.user.userInfo.stsTokenManager.accessToken
+                    Authorization: `Bearer ${state.user.userInfo.stsTokenManager.accessToken}`
                 }
             })
 
@@ -85,14 +85,9 @@ const Profile = div({ className: "container container-full" }, [
 const refRender = Profile.querySelector(".table-profile");
 DataTable(refRender, labels, state.user.projects.list);
 
-subscribe(state.user, () => {
-    if (state.user.projects.list.length > 0) {
-        const data = formatDataTableItem(state.user.projects.list);
-        grid.updateConfig({ data }).forceRender();
-    }
-    else {
-        grid.updateConfig({ data: [] }).forceRender();
-    }
+reaction(state, ['user.projects.list'], () => {
+    const data = formatDataTableItem(state.user.projects.list);
+    grid.updateConfig({ data }).forceRender();
 });
 
 const body = document.querySelector("body"),
